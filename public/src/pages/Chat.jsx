@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { allUsersRoutes } from '../utils/APIRoutes';
 import Contacts from '../components/Contacts';
 import Welcome from '../components/Welcome';
+import ChatContainer from '../components/ChatContainer';
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -60,10 +61,18 @@ const Chat = () => {
 
   return (
     <Container>
-      <div className='container'>
-        <Contacts contacts={contacts} currentUser={currentUser} changeChat={handleChatChange} />
-        <Welcome currentUser={currentUser} />
-      </div>
+      <ContentContainer>
+        <ContactsContainer>
+          <Contacts contacts={contacts} currentUser={currentUser} changeChat={handleChatChange} />
+        </ContactsContainer>
+        <ChatArea>
+          {currentChat === undefined ? (
+            <Welcome currentUser={currentUser} />
+          ) : (
+            <ChatContainer currentUser={currentUser} currentChat={currentChat} />
+          )}
+        </ChatArea>
+      </ContentContainer>
     </Container>
   );
 };
@@ -77,18 +86,26 @@ const Container = styled.div`
   gap: 1rem;
   align-items: center;
   background-color: #131324;
+`;
 
-  .container {
-    height: 85vh;
-    width: 85vw;
-    background-color: #00000076;
-    display: grid;
-    grid-template-columns: 25% 75%;
+const ContentContainer = styled.div`
+  height: 85vh;
+  width: 85vw;
+  background-color: #00000076;
+  display: grid;
+  grid-template-columns: 25% 75%;
 
-    @media screen and (min-width: 720px) and (max-width: 1024px) {
-      grid-template-columns: 35% 65%;
-    }
+  @media screen and (min-width: 720px) and (max-width: 1024px) {
+    grid-template-columns: 35% 65%;
   }
+`;
+
+const ContactsContainer = styled.div`
+  padding: 1rem;
+`;
+
+const ChatArea = styled.div`
+  padding: 1rem;
 `;
 
 const LoadingScreen = styled.div`
