@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Logo from "../assets/logo.jpg";
+import Logo from "../assets/logo.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -80,7 +80,7 @@ const Register = () => {
         <form onSubmit={handleSubmit}>
           <div className="brand">
             <img src={Logo} alt="Logo" />
-            <h1>Instachat</h1>
+            <h1>ChatBox</h1>
           </div>
           <input
             type="text"

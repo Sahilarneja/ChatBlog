@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import Logo from "../assets/logo.jpg";
+import Logo from "../assets/logo.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -18,16 +18,21 @@ const Login = () => {
     event.preventDefault();
     if (handleValidation()) {
       const { password, username } = values;
-      const { data } = await axios.post(loginRoute, {
-        username,
-        password,
-      });
-      if (data.status === false) {
-        toast.error(data.msg, toastOptions);
-      }
-      if (data.status === true) {
-        localStorage.setItem("chat-app-user", JSON.stringify(data.user));
-        navigate("/");
+      try {
+        const { data } = await axios.post(loginRoute, {
+          username,
+          password,
+        });
+        if (data.status === false) {
+          toast.error(data.msg, toastOptions);
+        }
+        if (data.status === true) {
+          localStorage.setItem("chat-app-user", JSON.stringify(data.user));
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error during login:", error);
+        toast.error("Failed to login. Please try again later.", toastOptions);
       }
     }
   };
@@ -42,11 +47,9 @@ const Login = () => {
     progress: undefined,
   };
 
-
-
   useEffect(() => {
-    if (localStorage.getItem('chat-app-user')) {
-      navigate('/');
+    if (localStorage.getItem("chat-app-user")) {
+      navigate("/");
     }
   }, [navigate]);
 
@@ -72,7 +75,7 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <div className="brand">
             <img src={Logo} alt="Logo" />
-            <h1>Instachat</h1>
+            <h1>ChatBox</h1>
           </div>
           <input
             type="text"

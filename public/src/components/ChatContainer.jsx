@@ -8,23 +8,28 @@ import { io } from "socket.io-client";
 
 function ChatContainer({ currentChat, currentUser }) {
   const [messages, setMessages] = useState([]);
-  const [arrivalMessage, setArrivalMessage] = useState(null);
+  const [socket, setSocket] = useState(null);
   const scrollRef = useRef();
-  const socketRef = useRef(null);
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:5000");
-    socketRef.current.emit("add-user", currentUser._id);
+    const newSocket = io("http://localhost:8000"); // Update with your backend port
+    setSocket(newSocket);
 
-    socketRef.current.on("msg-recieve", (msg) => {
-      setArrivalMessage({ fromSelf: false, message: msg });
-    });
-
-    return () => {
-      socketRef.current.off("msg-recieve");
-      socketRef.current.disconnect();
-    };
-  }, [currentUser._id]);
+    if (currentUser && newSocket) {
+      newSocket.emit("add-user", currentUser._id);
+  
+      const receiveMessageHandler = (msg) => {
+        setMessages(prevMessages => [...prevMessages, { fromSelf: false, message: msg }]);
+      };
+    
+      newSocket.on("msg-recieve", receiveMessageHandler);
+  
+      return () => {
+        newSocket.off("msg-recieve", receiveMessageHandler);
+        newSocket.disconnect();
+      };
+    }
+  }, [currentUser, currentChat?._id]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -45,29 +50,24 @@ function ChatContainer({ currentChat, currentUser }) {
 
   const handleSendMsg = async (msg) => {
     try {
+      // Optimistically update UI before sending message
+      setMessages((prevMessages) => [...prevMessages, { fromSelf: true, message: msg }]);
+
       await axios.post(sendMessageRoute, {
         from: currentUser._id,
         to: currentChat._id,
         message: msg,
       });
 
-      socketRef.current.emit("send-msg", {
+      socket.emit("send-msg", {
         from: currentUser._id,
         to: currentChat._id,
         msg: msg,
       });
-
-      setMessages((prevMessages) => [...prevMessages, { fromSelf: true, message: msg }]);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
   };
-
-  useEffect(() => {
-    if (arrivalMessage) {
-      setMessages((prevMessages) => [...prevMessages, arrivalMessage]);
-    }
-  }, [arrivalMessage]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -76,34 +76,36 @@ function ChatContainer({ currentChat, currentUser }) {
   const createSVGMarkup = (svgString) => ({ __html: svgString });
 
   return (
-    <>
+    <Container>
       {currentChat && (
-        <Container>
+        <>
           <ChatHeader>
             <UserDetails>
               <Avatar>
-                <AvatarImage dangerouslySetInnerHTML={createSVGMarkup(currentChat.avatarImage)} />
+                <AvatarImage dangerouslySetInnerHTML={createSVGMarkup(currentChat?.avatarImage)} />
               </Avatar>
-              <Username>{currentChat.username}</Username>
+              <Username>{currentChat?.username}</Username>
             </UserDetails>
             <Logout />
           </ChatHeader>
           <ChatMessages>
-            {messages.map((message, index) => (
-              <Message key={index} fromSelf={message.fromSelf}>
-                <MessageContent fromSelf={message.fromSelf}>
-                  <p>{message.message}</p>
-                </MessageContent>
-              </Message>
-            ))}
-            <div ref={scrollRef}></div>
+            <MessagesContainer>
+              {messages.map((message, index) => (
+                <Message key={index} fromSelf={message.fromSelf}>
+                  <MessageContent fromSelf={message.fromSelf}>
+                    <p>{message.message}</p>
+                  </MessageContent>
+                </Message>
+              ))}
+              <div ref={scrollRef}></div>
+            </MessagesContainer>
           </ChatMessages>
           <ChatInputContainer>
             <ChatInput handleSendMsg={handleSendMsg} />
           </ChatInputContainer>
-        </Container>
+        </>
       )}
-    </>
+    </Container>
   );
 }
 
@@ -157,6 +159,11 @@ const ChatMessages = styled.div`
   background-color: #131324;
   overflow-y: auto;
   color: white;
+`;
+
+const MessagesContainer = styled.div`
+  max-height: 60vh; /* Adjust the maximum height as per your design */
+  overflow-y: auto;
 `;
 
 const Message = styled.div`

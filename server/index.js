@@ -2,19 +2,23 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const userRoutes = require("./routes/userRoutes");
-const messageRoutes = require("./routes/messagesRoutes");
-const socket = require('socket.io');
+const { createServer } = require("http");  // Import createServer from http
+const { Server } = require("socket.io");
 
 const app = express();
+const server = createServer(app);  // Use createServer to create an HTTP server
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
-app.use("/api/auth", userRoutes);
-app.use("/api/messages", messageRoutes);
+app.use("/api/auth", require("./routes/userRoutes"));
+app.use("/api/messages", require("./routes/messagesRoutes"));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -23,21 +27,19 @@ mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true, useUnifiedTopol
   })
   .catch((error) => {
     console.error("Error connecting to database", error);
+    process.exit(1);
   });
 
 // Socket.io Setup
-const server = app.listen(process.env.PORT || 5000, () => {
-  console.log(`Server started on port ${process.env.PORT || 5000}`);
-});
-
-const io = socket(server, {
+const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
-    credentials: true,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-// Managing Online Users
+// Managing Online Users (Example)
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
@@ -52,14 +54,28 @@ io.on("connection", (socket) => {
     console.log("Message received and sending to:", data.to);
     const sendUserSocket = onlineUsers.get(data.to);
     if (sendUserSocket) {
-      socket.to(sendUserSocket).emit("msg-recieve", data.msg);
+      io.to(sendUserSocket).emit("msg-recieve", data.msg);
+    } else {
+      console.log(`User ${data.to} is offline.`);
+      // Handle offline user scenario if needed
     }
   });
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
-    // Clean up onlineUsers map if needed
-    // Example: const userId = [...onlineUsers.entries()].find(([key, value]) => value === socket.id)?.[0];
-    // if (userId) onlineUsers.delete(userId);
+    // Clean up onlineUsers map
+    for (const [key, value] of onlineUsers.entries()) {
+      if (value === socket.id) {
+        onlineUsers.delete(key);
+        console.log(`User ${key} disconnected.`);
+        break;
+      }
+    }
   });
+});
+
+// Start server on port 8000
+const PORT = process.env.PORT || 8000;
+server.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
