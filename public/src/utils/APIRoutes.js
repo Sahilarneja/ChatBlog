@@ -1,7 +1,7 @@
-const host = "http://localhost:8000";
+export const host = "http://localhost:8000";
 export const registerRoute = `${host}/api/auth/register`;
 export const loginRoute = `${host}/api/auth/login`;
 export const setAvatarRoute = `${host}/api/auth/setAvatar`;
 export const allUsersRoutes = `${host}/api/auth/allUsers`;
-export const addMessageRoute = `${host}/api/messages/addmsg`;
-export const getAllMessageRoute = `${host}/api/messages/getmsg`;
+export const sendMessageRoute = `${host}/api/messages/addmsg`;
+export const recieveMessageRoute = `${host}/api/messages/getmsg`;
