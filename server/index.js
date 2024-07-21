@@ -17,6 +17,11 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
+// Define a route for the root URL
+app.get('/', (req, res) => {
+  res.send('Welcome to the server!');
+});
+
 app.use("/api/auth", require("./routes/userRoutes"));
 app.use("/api/messages", require("./routes/messagesRoutes"));
 
