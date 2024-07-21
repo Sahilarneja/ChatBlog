@@ -15,25 +15,37 @@ const Register = () => {
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false); // Optional loading state
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (handleValidation()) {
-      const { password, username, email } = values;
-      const { data } = await axios.post(registerRoute, {
-        username,
-        email,
-        password,
-      });
-      if (data.status === false) {
-        toast.error(data.msg, toastOptions);
-      }
-      if (data.status === true) {
-        localStorage.setItem("chat-app-user", JSON.stringify(data.user));
-        navigate("/");
-      }
+        setLoading(true);
+        try {
+            const { password, username, email } = values;
+            const { data } = await axios.post(registerRoute, {
+                username,
+                email,
+                password,
+            });
+            if (data.status === false) {
+                toast.error(data.msg, toastOptions);
+            } else if (data.status === true) {
+                localStorage.setItem("chat-app-user", JSON.stringify(data.user));
+                navigate("/");
+            }
+        } catch (error) {
+            console.error("Error registering user:", error);
+            if (error.response) {
+                toast.error(error.response.data.msg || "An error occurred while registering. Please try again.", toastOptions);
+            } else {
+                toast.error("An error occurred while registering. Please try again.", toastOptions);
+            }
+        } finally {
+            setLoading(false);
+        }
     }
-  };
+};
 
   const toastOptions = {
     position: "top-right",
@@ -51,20 +63,22 @@ const Register = () => {
     }
   }, [navigate]);
 
-
   const handleValidation = () => {
     const { password, confirmPassword, username, email } = values;
     if (password !== confirmPassword) {
-      toast.error("Password and confirm password do not match!!", toastOptions);
+      toast.error("Password and confirm password do not match!", toastOptions);
       return false;
     } else if (username.length < 3) {
-      toast.error("Username must be at least 3 characters long!!", toastOptions);
+      toast.error("Username must be at least 3 characters long!", toastOptions);
       return false;
     } else if (password.length < 8) {
-      toast.error("Password must be equal or greater than 8 characters long!!", toastOptions);
+      toast.error("Password must be at least 8 characters long!", toastOptions);
       return false;
-    } else if (email === "") {
-      toast.error("Email is required!!", toastOptions);
+    } else if (!email) {
+      toast.error("Email is required!", toastOptions);
+      return false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) { // Check for valid email format
+      toast.error("Please enter a valid email address!", toastOptions);
       return false;
     }
     return true;
@@ -87,26 +101,32 @@ const Register = () => {
             placeholder="Username"
             name="username"
             onChange={handleChange}
+            value={values.username}
           />
           <input
             type="email"
             placeholder="Email"
             name="email"
             onChange={handleChange}
+            value={values.email}
           />
           <input
             type="password"
             placeholder="Password"
             name="password"
             onChange={handleChange}
+            value={values.password}
           />
           <input
             type="password"
             placeholder="Confirm Password"
             name="confirmPassword"
             onChange={handleChange}
+            value={values.confirmPassword}
           />
-          <button type="submit">Create User</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Creating User..." : "Create User"}
+          </button>
           <span>
             Already Have An Account? <Link to="/login">Login</Link>
           </span>
@@ -184,6 +204,11 @@ const FormContainer = styled.div`
 
       &:hover {
         background-color: #4e0eff;
+      }
+
+      &:disabled {
+        background-color: #6c63ff;
+        cursor: not-allowed;
       }
     }
 
