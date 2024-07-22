@@ -10,7 +10,7 @@ const server = createServer(app);  // Use createServer to create an HTTP server
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: "https://chatblog-server.onrender.com/",
   methods: ["GET", "POST"],
   credentials: true
 }));
