@@ -79,4 +79,3 @@ module.exports.getAllUsers = async (req, res) => {
         return res.status(500).json({ msg: "Something went wrong", status: false });
     }
 };
-
