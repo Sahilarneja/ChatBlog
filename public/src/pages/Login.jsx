@@ -31,8 +31,18 @@ const Login = () => {
           navigate("/");
         }
       } catch (error) {
-        console.error("Error during login:", error);
-        toast.error("Failed to login. Please try again later.", toastOptions);
+        // Handle different error types
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          toast.error(`Error: ${error.response.data.message || 'An error occurred. Please try again later.'}`, toastOptions);
+        } else if (error.request) {
+          // The request was made but no response was received
+          toast.error('No response from server. Please check your network connection.', toastOptions);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          toast.error(`Error: ${error.message}`, toastOptions);
+        }
       }
     }
   };
@@ -81,12 +91,14 @@ const Login = () => {
             type="text"
             placeholder="Username"
             name="username"
+            value={values.username}
             onChange={handleChange}
           />
           <input
             type="password"
             placeholder="Password"
             name="password"
+            value={values.password}
             onChange={handleChange}
           />
           <button type="submit">Login</button>
@@ -185,3 +197,4 @@ const FormContainer = styled.div`
 `;
 
 export default Login;
+
