@@ -29,28 +29,27 @@ module.exports.register = async (req, res) => {
 
 module.exports.login = async (req, res) => {
     try {
-        const { username, password } = req.body;
-        
-        // Find user by username
-        const user = await User.findOne({ username });
-        
+        const { email, password } = req.body;
+  
+        // Find user by email
+        const user = await User.findOne({ email });
+  
         if (!user) {
-            return res.status(401).json({ msg: "Incorrect username or password", status: false });
+            return res.status(400).json({ message: 'Invalid credentials' });
         }
-
-        // Compare the provided password with the stored hashed password
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        
-        if (!isPasswordValid) {
-            return res.status(401).json({ msg: "Incorrect username or password", status: false });
+  
+        // Compare password
+        const isMatch = await bcrypt.compare(password, user.password);
+  
+        if (isMatch) {
+            // Successful login
+            return res.json({ message: 'Login successful' });
+        } else {
+            return res.status(400).json({ message: 'Invalid credentials' });
         }
-
-        // Password is valid; respond with success
-        return res.status(200).json({ status: true, user: { username: user.username } }); // Optionally include more user info if needed
-
-    } catch (error) {
-        console.error("Login error:", error);
-        return res.status(500).json({ msg: "Something went wrong", status: false });
+    } catch (err) {
+        console.error('Login error:', err);
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 };
 
