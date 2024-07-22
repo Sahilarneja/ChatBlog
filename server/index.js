@@ -9,9 +9,19 @@ const app = express();
 const server = createServer(app);  // Use createServer to create an HTTP server
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://chat-blog-public-three.vercel.app'
+];
+
 app.use(cors({
-  origin: "https://chatblog-server.onrender.com/",
-  methods: ["GET", "POST"],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
