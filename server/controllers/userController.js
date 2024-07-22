@@ -27,26 +27,30 @@ module.exports.register = async (req, res) => {
     }
 };
 
+
+
 module.exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
         if (!user) {
-            return res.status(404).json({ msg: "User not found", status: false });
+            return res.status(404).json({ msg: "Username not found", status: false });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ msg: "Incorrect username or password", status: false });
+            return res.status(401).json({ msg: "Incorrect password", status: false });
         }
+
         const { password: _, ...userWithoutPassword } = user._doc; // Destructure to remove password
         return res.status(200).json({ status: true, user: userWithoutPassword });
 
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ msg: "Something went wrong", status: false });
+        return res.status(500).json({ msg: "Something went wrong. Please try again later.", status: false });
     }
 };
+
 
 module.exports.setAvatar = async (req, res) => {
     try {
