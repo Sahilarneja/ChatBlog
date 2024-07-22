@@ -30,20 +30,26 @@ module.exports.register = async (req, res) => {
 module.exports.login = async (req, res) => {
     try {
         const { username, password } = req.body;
+        
+        // Find user by username
         const user = await User.findOne({ username });
+        
         if (!user) {
-            return res.status(404).json({ msg: "User not found", status: false });
+            return res.status(401).json({ msg: "Incorrect username or password", status: false });
         }
 
+        // Compare the provided password with the stored hashed password
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        
         if (!isPasswordValid) {
             return res.status(401).json({ msg: "Incorrect username or password", status: false });
         }
-        const { password: _, ...userWithoutPassword } = user._doc; // Destructure to remove password
-        return res.status(200).json({ status: true, user: userWithoutPassword });
+
+        // Password is valid; respond with success
+        return res.status(200).json({ status: true, user: { username: user.username } }); // Optionally include more user info if needed
 
     } catch (error) {
-        console.error(error);
+        console.error("Login error:", error);
         return res.status(500).json({ msg: "Something went wrong", status: false });
     }
 };
