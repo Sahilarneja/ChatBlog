@@ -24,9 +24,15 @@ const Login = () => {
           password,
         });
         if (data.status === false) {
-          toast.error(data.msg, toastOptions);
-        }
-        if (data.status === true) {
+          // Handle specific error messages from the backend
+          if (data.msg === "Incorrect password") {
+            toast.error("Incorrect password. Please try again.", toastOptions);
+          } else if (data.msg === "Username not found") {
+            toast.error("Username not found. Please check your username.", toastOptions);
+          } else {
+            toast.error(data.msg || "Login failed. Please try again.", toastOptions);
+          }
+        } else if (data.status === true) {
           localStorage.setItem("chat-app-user", JSON.stringify(data.user));
           navigate("/");
         }
@@ -34,7 +40,6 @@ const Login = () => {
         // Handle different error types
         if (error.response) {
           // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
           toast.error(`Error: ${error.response.data.message || 'An error occurred. Please try again later.'}`, toastOptions);
         } else if (error.request) {
           // The request was made but no response was received
@@ -197,4 +202,3 @@ const FormContainer = styled.div`
 `;
 
 export default Login;
-
