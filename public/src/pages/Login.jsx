@@ -5,37 +5,13 @@ import Logo from "../assets/logo.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import { loginRoute } from "../utils/APIRoutes";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [values, setValues] = useState({
-    username: "",
-    password: "",
-  });
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (handleValidation()) {
-      const { password, username } = values;
-      try {
-        const { data } = await axios.post(loginRoute, {
-          username,
-          password,
-        });
-
-        if (data.status === false) {
-          toast.error(data.msg, toastOptions);
-        } else if (data.status === true) {
-          localStorage.setItem("chat-app-user", JSON.stringify(data.user));
-          navigate("/");
-        }
-      } catch (error) {
-        console.error("Error during login:", error);
-        toast.error("Failed to login. Please try again later.", toastOptions);
-      }
-    }
-  };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const toastOptions = {
     position: "top-right",
@@ -47,27 +23,44 @@ const Login = () => {
     progress: undefined,
   };
 
-  useEffect(() => {
-    if (localStorage.getItem("chat-app-user")) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!handleValidation()) return;
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/auth/login', {
+        email,
+        password
+      });
+      setMessage(response.data.message);
+      setError('');
+      toast.success(response.data.message, toastOptions);
+      localStorage.setItem("chat-app-user", JSON.stringify(response.data)); // Example: Save user data
       navigate("/");
+    } catch (err) {
+      setError(err.response.data.message || 'An error occurred');
+      setMessage('');
+      toast.error(err.response.data.message || 'An error occurred', toastOptions);
     }
-  }, [navigate]);
+  };
 
   const handleValidation = () => {
-    const { password, username } = values;
     if (password === "") {
       toast.error("Password is required", toastOptions);
       return false;
-    } else if (username === "") {
-      toast.error("Username is required", toastOptions);
+    } else if (email === "") {
+      toast.error("Email is required", toastOptions);
       return false;
     }
     return true;
   };
 
-  const handleChange = (event) => {
-    setValues({ ...values, [event.target.name]: event.target.value });
-  };
+  useEffect(() => {
+    if (localStorage.getItem("chat-app-user")) {
+      navigate("/");
+    }
+  }, [navigate]);
 
   return (
     <>
@@ -78,18 +71,16 @@ const Login = () => {
             <h1>ChatBox</h1>
           </div>
           <input
-            type="text"
-            placeholder="Username"
-            name="username"
-            value={values.username}
-            onChange={handleChange}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
             placeholder="Password"
-            name="password"
-            value={values.password}
-            onChange={handleChange}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
           <button type="submit">Login</button>
           <span>
@@ -145,42 +136,42 @@ const FormContainer = styled.div`
     input {
       background-color: transparent;
       padding: 0.75rem;
-      border: 0.1rem solid #4e0eff;
+      border: 1px solid #fff;
       border-radius: 0.5rem;
-      color: white;
+      color: #fff;
       font-size: 1rem;
+
       &:focus {
-        border-color: #997afc;
         outline: none;
+        border-color: #4e0eff;
       }
     }
 
     button {
-      background-color: #997afc;
-      color: white;
-      padding: 1rem 2rem;
+      background-color: #4e0eff;
+      color: #fff;
+      padding: 0.75rem 1rem;
       border: none;
       border-radius: 0.5rem;
       font-size: 1rem;
-      font-weight: bold;
       cursor: pointer;
-      transition: 0.5s ease-in-out;
-      text-transform: uppercase;
 
       &:hover {
-        background-color: #4e0eff;
+        background-color: #5a24ff;
       }
     }
 
     span {
-      color: white;
-      text-align: center;
-      text-transform: uppercase;
+      color: #fff;
+      font-size: 0.9rem;
 
       a {
         color: #4e0eff;
         text-decoration: none;
-        font-weight: bold;
+
+        &:hover {
+          text-decoration: underline;
+        }
       }
     }
   }
