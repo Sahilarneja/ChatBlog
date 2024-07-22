@@ -1,5 +1,4 @@
 const User = require("../model/userModel");
-const bcrypt = require("bcrypt");
 
 module.exports.register = async (req, res) => {
     try {
@@ -13,12 +12,13 @@ module.exports.register = async (req, res) => {
             return res.status(400).json({ msg: "Email already in use", status: false });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Store password as plaintext (not recommended for production)
         const user = await User.create({
             username,
             email,
-            password: hashedPassword,
+            password, // Store plaintext password (insecure)
         });
+
         const { password: _, ...userWithoutPassword } = user._doc; // Destructure to remove password
         return res.status(201).json({ status: true, user: userWithoutPassword });
     } catch (error) {
@@ -30,18 +30,16 @@ module.exports.register = async (req, res) => {
 module.exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
-  
+
         // Find user by email
         const user = await User.findOne({ email });
-  
+
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
-  
-        // Compare password
-        const isMatch = await bcrypt.compare(password, user.password);
-  
-        if (isMatch) {
+
+        // Compare password (plaintext comparison, not recommended)
+        if (password === user.password) {
             // Successful login
             return res.json({ message: 'Login successful' });
         } else {
@@ -84,3 +82,4 @@ module.exports.getAllUsers = async (req, res) => {
         return res.status(500).json({ msg: "Something went wrong", status: false });
     }
 };
+
