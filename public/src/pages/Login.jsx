@@ -25,12 +25,16 @@ const Login = () => {
         });
         if (data.status === false) {
           // Handle specific error messages from the backend
-          if (data.msg === "Incorrect password") {
-            toast.error("Incorrect password. Please try again.", toastOptions);
-          } else if (data.msg === "Username not found") {
-            toast.error("Username not found. Please check your username.", toastOptions);
-          } else {
-            toast.error(data.msg || "Login failed. Please try again.", toastOptions);
+          switch (data.msg) {
+            case "Username not found":
+              toast.error("Username not found. Please check your username.", toastOptions);
+              break;
+            case "Incorrect password":
+              toast.error("Incorrect password. Please try again.", toastOptions);
+              break;
+            default:
+              toast.error(data.msg || "Login failed. Please try again.", toastOptions);
+              break;
           }
         } else if (data.status === true) {
           localStorage.setItem("chat-app-user", JSON.stringify(data.user));
@@ -200,5 +204,7 @@ const FormContainer = styled.div`
     }
   }
 `;
+
+export default Login;
 
 export default Login;
