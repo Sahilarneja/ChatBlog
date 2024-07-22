@@ -12,7 +12,7 @@ function ChatContainer({ currentChat, currentUser }) {
   const scrollRef = useRef();
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8000"); // Update with your backend port
+    const newSocket = io("https://chatblog-server.onrender.com"); // Update with your backend port
     setSocket(newSocket);
 
     if (currentUser && newSocket) {
