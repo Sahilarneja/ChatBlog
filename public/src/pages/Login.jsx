@@ -5,6 +5,8 @@ import Logo from "../assets/logo.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { loginRoute } from "../utils/APIRoutes";
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -29,7 +31,7 @@ const Login = () => {
     if (!handleValidation()) return;
 
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/login', {
+      const response = await axios.post(loginRoute, {
         email,
         password
       });
